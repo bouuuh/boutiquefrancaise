@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Panier - La Boutique Française{% endblock %}
+
+{% block content %}
+<h1>Panier</h1>
+Retrouvez les produits de votre panier ici
+<hr>
+{% if cart|length > 0 %}
+<table class="table mt-4">
+  <thead>
+    <tr>
+      <th scope="col">Produit</th>
+      <th scope="col"></th>
+      <th scope="col">Quantité</th>
+      <th scope="col">Prix</th>
+      <th scope="col">Total</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody >
+  {% set total = null %}
+  {% for product in cart %}
+    <tr>
+      <th scope="row my-auto">
+        <img src="uploads/{{ product.product.illustration }}" height="100px" alt=""> <br>
+      </th>
+      <td>
+        {{ product.product.name }} <br>
+        <small>{{ product.product.subtitle }}</small> 
+      </td>
+      <td>
+        <a href="{{ path('decrease-to-cart', { 'id' : product.product.id }) }}">
+            <img src="{{ asset('assets/images/minus.png') }}" height="12px" alt="Supprimer une quantité du produit">
+        </a>
+         {{ product.quantity }} 
+        <a href="{{ path('add-to-cart', { 'id' : product.product.id }) }}">
+            <img src="{{ asset('assets/images/plus.png') }}" height="12px" alt="Supprimer le produit">
+        </a>
+      </td>
+      <td>{{ (product.product.price / 100)|number_format(2, ',', '.') }} €</td>
+      <td>{{ ((product.product.price) * product.quantity / 100)|number_format(2, ',', '.') }} €</td>
+      <td>
+        <a href="{{ path('delete-to-cart', { 'id' : product.product.id }) }}">
+            <img src="{{ asset('assets/images/delete.png') }}" height="20px" alt="Supprimer le produit">
+        </a>
+      
+      </td>
+    </tr>
+    {% set total = total + (product.product.price) * product.quantity %}
+    {% endfor %}
+  </tbody>
+</table>
+    <div class="text-end mb-5">
+        <b>Nombre de produits : {{ cart|length }}</b> <br>
+        <b>Total du panier : {{ (total/ 100)|number_format(2, ',', '.') }} €</b> <br>
+        <a href="{{ path('order') }}" class="btn btn-success col-12 mt-3">Valider mon panier</a>
+    </div>
+    {% else %}
+    <hr>
+    <p><b>Votre panier est vide</b></p>
+    {% endif %}
+{% endblock %}
