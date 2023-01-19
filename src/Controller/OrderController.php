@@ -8,6 +8,8 @@ use App\Entity\Address;
 use App\Entity\OrderDetails;
 use App\Form\OrderType;
 use Doctrine\ORM\EntityManagerInterface;
+use Stripe\Checkout\Session;
+use Stripe\Stripe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -73,8 +75,8 @@ class OrderController extends AbstractController
             $order->setIsPaid(0);
 
             $this->entityManager->persist($order);
-            
-            
+            $YOUR_DOMAIN = 'http://127.0.0.1:8000';
+            $product_for_stripe = [];
             foreach ($cart->getFull() as $product) {
                 $orderDetails = new OrderDetails();
                 $orderDetails->setMyOrder($order);
@@ -83,12 +85,47 @@ class OrderController extends AbstractController
                 $orderDetails->setPrice($product['product']->getPrice());
                 $orderDetails->setTotal($product['product']->getPrice() * $product['quantity']);
                 $this->entityManager->persist($orderDetails);
+
+                $product_for_stripe[] = [
+                    'price_data' => [
+                        'currency' => 'eur',
+                        'unit_amount' => $product['product']->getPrice(),
+                        'product_data' => [
+                            'name' => $product['product']->getName(),
+                            'images' => [$YOUR_DOMAIN."/uploads/".$product['product']->getIllustration()]
+                        ],
+                    ],
+                    'quantity' => $product['quantity'],
+                
+                ];
             }
-            $this->entityManager->flush();
+
+           // $this->entityManager->flush();
+
+            //Stripe
+            Stripe::setApiKey('sk_test_51MRcwIKaaFB9v3NjgNwA0v8qf8QNs10z8J2EFb5xIcN905Ev6Lpx3dHSjvEiXqcWXgQH5mmzzybBmS8O5mS9iAFW00p9rSMnWs');
+
+
+                $checkout_session = Session::create([
+                'line_items' => [
+                    $product_for_stripe
+                ],
+                'mode' => 'payment',
+                'success_url' => $YOUR_DOMAIN . '/success.html',
+                'cancel_url' => $YOUR_DOMAIN . '/cancel.html',
+                ]);
+
+                //header("HTTP/1.1 303 See Other");
+                //header("Location: " . $checkout_session->url);
+            
+           
+
+
             return $this->render('order/add.html.twig', [
                 'cart' => $cart->getFull(),
                 'carrier' => $carriers,
-                'delivery' => $delivery_content
+                'delivery' => $delivery_content,
+                'stripe_checkout_session' => $checkout_session->id
             ]);
         }
         return $this->redirectToRoute('cart');
