@@ -6,11 +6,12 @@
 <h1>Mon compte</h1>
 Bienvenue {{app.user.firstname}} ! <br>
 C'est ici que vous pouvez gérer vos informations : <br>
+{% if is_granted('ROLE_ADMIN') %}
+- <a href="/admin">Accéder au back office</a><br>
+{% endif %}
 - <a href="{{ path('app_account_password') }}">Modifier mon mot de passe</a><br>
 - <a href="{{ path('account_address') }}">Gérer mes adresses</a><br>
-<ul>
-<li>adresse</li>
-<li>commandes</li>
-</ul>
+- <a href="{{ path('account_order') }}">Mes commandes</a><br>
+
 
 {% endblock %}
